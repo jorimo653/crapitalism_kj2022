@@ -1,0 +1,15 @@
+ crapitalism
+
+Ships
+- Speed
+- Capacity and inventory
+- Acceleration (affected by capacity)
+- Upkeep cost
+- Build cost
+
+Planets (including moons, other bodies)
+- Capacity
+- currentPopulation
+- currentWaste
+- Growth rate (defined globally, for now)
+- Waste per population rate (global)

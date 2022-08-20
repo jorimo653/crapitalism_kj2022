@@ -1,6 +1,6 @@
 import "phaser";
 
-export default class Demo extends Phaser.Scene {
+export default class Game extends Phaser.Scene {
   private width: number;
   private height: number;
 
@@ -46,7 +46,7 @@ const config = {
   backgroundColor: "#125555",
   width: window.innerWidth,
   height: window.innerHeight,
-  scene: Demo,
+  scene: Game,
 };
 
 const game = new Phaser.Game(config);
