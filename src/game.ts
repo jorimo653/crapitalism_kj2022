@@ -35,8 +35,6 @@ export default class Game extends Phaser.Scene {
     super("game");
     this.screenCenter = { x: window.innerWidth, y: window.innerHeight };
 
-    this.shipScaleFactor = 0.25;
-
     this.state = {
       money: 0,
       planets: {},
@@ -44,7 +42,7 @@ export default class Game extends Phaser.Scene {
       routes: {},
     };
     this.sprites = {};
-    this.shipScaleFactor = 0.5;
+    this.shipScaleFactor = 0.3;
 
     this.cameraMaxSpeed = 0.8;
     this.cameraAcceleration = 0.5;
@@ -86,7 +84,7 @@ export default class Game extends Phaser.Scene {
     const moonId = this.createPlanet({
       texture: "moon",
       radius: 25,
-      position: { x: 2200, y: 1500 },
+      position: { x: 2200, y: 1800 },
     });
 
     const shipId = this.createShip({
@@ -113,7 +111,7 @@ export default class Game extends Phaser.Scene {
     Moon pop: ${this.state.planets[moonId].population}, waste: ${
         this.state.planets[moonId].waste
       }
-    Ship waste: ${this.state.ships.shuttle1.waste}
+    Ship waste: ${this.state.ships[shipId].waste}
     Money: ${new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -125,8 +123,8 @@ export default class Game extends Phaser.Scene {
     // camera
     this.cameras.main.setBounds(0, 0, 8000, 4000);
     this.cameras.main.centerOn(
-      this.state.ships.shuttle1.position.x,
-      this.state.ships.shuttle1.position.y,
+      this.state.ships[shipId].position.x,
+      this.state.ships[shipId].position.y,
     );
     this.cameras.main.setZoom(1, 1);
 
