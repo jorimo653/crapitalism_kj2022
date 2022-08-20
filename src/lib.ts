@@ -1,3 +1,4 @@
+import { MONEY_PER_WASTE, PLANET_VALUE_PER_EMPTY, PLANET_VALUE_PER_POPULATION, PLANET_VALUE_PER_WASTE, POPULATION_GROWTH_RATE, WASTE_PER_POP } from "./constants";
 import { Action, Planet, Position, Ship, State } from "./types";
 
 export function updatePlanet(
@@ -5,18 +6,18 @@ export function updatePlanet(
   planet: Planet,
   delta: number,
 ): void {
-  // grow population if room
-  if (planet.population + planet.waste < planet.capacity) {
+  // grow populated planets if room
+  if (planet.population > 0 && (planet.population + planet.waste) < planet.capacity) {
     planet.growingPop += POPULATION_GROWTH_RATE * delta;
     planet.population = Math.min(
       planet.capacity,
-      planet.capacity + Math.floor(planet.growingPop),
+      planet.population + Math.floor(planet.growingPop),
     );
     planet.growingPop -= Math.floor(planet.growingPop);
   }
   // produce waste
   if (planet.population > 0 && planet.waste < planet.capacity) {
-    planet.growingWaste += planet.population * WASTE_GENERATION_RATE * delta;
+    planet.growingWaste += planet.population * WASTE_PER_POP * delta;
     planet.waste = Math.min(
       planet.capacity,
       planet.waste + Math.floor(planet.growingWaste),
@@ -28,7 +29,7 @@ export function updatePlanet(
 }
 
 export function displacePopulationIfNeeded(planet: Planet): void {
-  if (planet.population + planet.waste < planet.capacity) {
+  if ((planet.population + planet.waste) > planet.capacity) {
     planet.population = planet.capacity - planet.waste;
   }
 }
@@ -44,7 +45,7 @@ export function calculatePlanetValue(planet: Planet): number {
 
 export function updateShip(state: State, ship: Ship, delta: number): void {
   // upkeep
-  state.money -= Math.min(0, ship.type.upkeepCost * delta);
+  state.money = Math.max(0, state.money - ship.type.upkeepCost * delta);
 
   if (ship.assignedRoute) {
     const route = state.routes[ship.assignedRoute];
@@ -61,27 +62,30 @@ export function updateShip(state: State, ship: Ship, delta: number): void {
     ship.direction = direction;
 
     // update speed and position
-    const currentSpeed = Math.min(
+    ship.currentSpeed = Math.min(
       ship.type.maxSpeed,
       ship.currentSpeed + ship.type.acceleration * delta,
     );
+
     if (
       calculateDistance(ship.position, planet.position) <
-      currentSpeed * delta
+      ship.currentSpeed * delta
     ) {
       ship.position = { ...planet.position };
     } else {
-      ship.position.x += Math.cos(ship.direction);
-      ship.position.y += Math.sin(ship.direction);
+      ship.position.x += Math.cos(ship.direction) * ship.currentSpeed;
+      ship.position.y += Math.sin(ship.direction) * ship.currentSpeed;
     }
 
     // check if at destination
     if (
       calculateDistance(ship.position, planet.position) <
-      DESTINATION_DISTANCE_THRESHOLD
+      planet.radius
     ) {
       ship.currentSpeed = 0;
       executeShipAction(state, ship, node.action, planet);
+      ship.destinationNodeIndex =
+        (ship.destinationNodeIndex + 1) % route.nodes.length;
     }
   } else {
     // no route, do nothing
@@ -126,4 +130,8 @@ export function executeShipAction(
 
 export function calculateDistance(p1: Position, p2: Position): number {
   return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+}
+
+export function convertRadiansToDegrees(value: number): number {
+  return (value / 2 / Math.PI) * 360;
 }

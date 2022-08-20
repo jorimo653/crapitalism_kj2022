@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/ozymoondias/crapitalism_kj2022#readme",
   "dependencies": {
+    "nanoid": "^4.0.0",
     "normalize.css": "^8.0.1"
   },
   "devDependencies": {

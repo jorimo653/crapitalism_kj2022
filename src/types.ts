@@ -14,6 +14,7 @@ export interface Planet {
   id: string;
   position: Position;
   capacity: number;
+  radius: number;
   population: number;
   waste: number;
   growingPop: number;
@@ -28,7 +29,7 @@ export interface Ship {
   direction: number; // in radians
   currentSpeed: number;
   waste: number;
-  assignedRoute?: number | null;
+  assignedRoute?: string | null;
   destinationNodeIndex?: number | null;
 }
 
@@ -49,6 +50,6 @@ export interface Route {
 export type Action = "LOAD_WASTE" | "DUMP_WASTE";
 
 export interface RouteNode {
-  planet: number;
+  planet: string;
   action: Action;
 }
