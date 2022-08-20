@@ -1,6 +1,6 @@
 import "phaser";
 
-export default class Demo extends Phaser.Scene {
+export default class Game extends Phaser.Scene {
   private width: number;
   private height: number;
 
@@ -11,33 +11,13 @@ export default class Demo extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("logo", "assets/phaser3-logo.png");
-    this.load.image("libs", "assets/libs.png");
-    this.load.glsl("bundle", "assets/plasma-bundle.glsl.js");
-    this.load.glsl("stars", "assets/starfields.glsl.js");
+    // load assets here
+    this.load.image("homeWorld", "assets/images/kenney_planets/Planets/planet00.png");
   }
 
   create() {
-    this.add
-      .shader("RGB Shift Field", 0, 0, this.width, this.height)
-      .setOrigin(0);
-
-    this.add
-      .shader("Plasma", this.width / 4, 412, this.width / 2, 172)
-      .setOrigin(0);
-
-    this.add.image(this.width / 2, this.height / 2, "libs");
-
-    const logo = this.add.image(this.width / 2, 70, "logo");
-
-    this.tweens.add({
-      targets: logo,
-      y: 350,
-      duration: 1500,
-      ease: "Sine.inOut",
-      yoyo: true,
-      repeat: -1,
-    });
+    //  add to top-level game object
+    this.add.image(this.width / 2, this.height / 2, "homeWorld");
   }
 }
 
@@ -46,7 +26,7 @@ const config = {
   backgroundColor: "#125555",
   width: window.innerWidth,
   height: window.innerHeight,
-  scene: Demo,
+  scene: Game,
 };
 
 const game = new Phaser.Game(config);
