@@ -1,16 +1,26 @@
 import { Action, Planet, Position, Ship, State } from "./types";
 
-export function updatePlanet(state: State, planet: Planet, delta: number): void {
+export function updatePlanet(
+  state: State,
+  planet: Planet,
+  delta: number,
+): void {
   // grow population if room
   if (planet.population + planet.waste < planet.capacity) {
     planet.growingPop += POPULATION_GROWTH_RATE * delta;
-    planet.population = Math.min(planet.capacity, planet.capacity + Math.floor(planet.growingPop));
+    planet.population = Math.min(
+      planet.capacity,
+      planet.capacity + Math.floor(planet.growingPop),
+    );
     planet.growingPop -= Math.floor(planet.growingPop);
   }
   // produce waste
   if (planet.population > 0 && planet.waste < planet.capacity) {
     planet.growingWaste += planet.population * WASTE_GENERATION_RATE * delta;
-    planet.waste = Math.min(planet.capacity, planet.waste + Math.floor(planet.growingWaste));
+    planet.waste = Math.min(
+      planet.capacity,
+      planet.waste + Math.floor(planet.growingWaste),
+    );
     planet.growingWaste -= Math.floor(planet.growingWaste);
   }
   // waste pushes out population if needed
@@ -24,7 +34,12 @@ export function displacePopulationIfNeeded(planet: Planet): void {
 }
 
 export function calculatePlanetValue(planet: Planet): number {
-  return planet.population * PLANET_VALUE_PER_POPULATION + planet.waste * PLANET_VALUE_PER_WASTE + (planet.capacity - planet.population - planet.waste) * PLANET_VALUE_PER_EMPTY;
+  return (
+    planet.population * PLANET_VALUE_PER_POPULATION +
+    planet.waste * PLANET_VALUE_PER_WASTE +
+    (planet.capacity - planet.population - planet.waste) *
+      PLANET_VALUE_PER_EMPTY
+  );
 }
 
 export function updateShip(state: State, ship: Ship, delta: number): void {
@@ -46,8 +61,14 @@ export function updateShip(state: State, ship: Ship, delta: number): void {
     ship.direction = direction;
 
     // update speed and position
-    const currentSpeed = Math.min(ship.type.maxSpeed, ship.currentSpeed + ship.type.acceleration * delta);
-    if (calculateDistance(ship.position, planet.position) < currentSpeed * delta) {
+    const currentSpeed = Math.min(
+      ship.type.maxSpeed,
+      ship.currentSpeed + ship.type.acceleration * delta,
+    );
+    if (
+      calculateDistance(ship.position, planet.position) <
+      currentSpeed * delta
+    ) {
       ship.position = { ...planet.position };
     } else {
       ship.position.x += Math.cos(ship.direction);
@@ -55,7 +76,10 @@ export function updateShip(state: State, ship: Ship, delta: number): void {
     }
 
     // check if at destination
-    if (calculateDistance(ship.position, planet.position) < DESTINATION_DISTANCE_THRESHOLD) {
+    if (
+      calculateDistance(ship.position, planet.position) <
+      DESTINATION_DISTANCE_THRESHOLD
+    ) {
       ship.currentSpeed = 0;
       executeShipAction(state, ship, node.action, planet);
     }
@@ -65,9 +89,14 @@ export function updateShip(state: State, ship: Ship, delta: number): void {
   }
 }
 
-export function executeShipAction(state: State, ship: Ship, action: Action, planet: Planet): void {
+export function executeShipAction(
+  state: State,
+  ship: Ship,
+  action: Action,
+  planet: Planet,
+): void {
   switch (action) {
-    case 'LOAD_WASTE': {
+    case "LOAD_WASTE": {
       const remainingShipCapacity = ship.type.capacity - ship.waste;
       if (remainingShipCapacity > 0) {
         const toLoad = Math.min(planet.waste, remainingShipCapacity);
@@ -77,7 +106,7 @@ export function executeShipAction(state: State, ship: Ship, action: Action, plan
       }
       break;
     }
-    case 'DUMP_WASTE': {
+    case "DUMP_WASTE": {
       const remainingPlanetCapacity = planet.capacity - planet.waste;
       if (remainingPlanetCapacity > 0) {
         const toDump = Math.min(ship.waste, remainingPlanetCapacity);
@@ -88,7 +117,9 @@ export function executeShipAction(state: State, ship: Ship, action: Action, plan
       break;
     }
     default: {
-      console.error(`Bad action ${action} for ship ${ship.id} at planet ${planet.id}`);
+      console.error(
+        `Bad action ${action} for ship ${ship.id} at planet ${planet.id}`,
+      );
     }
   }
 }

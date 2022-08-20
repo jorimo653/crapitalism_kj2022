@@ -46,7 +46,7 @@ export interface Route {
   nodes: RouteNode[];
 }
 
-export type Action = 'LOAD_WASTE' | 'DUMP_WASTE';
+export type Action = "LOAD_WASTE" | "DUMP_WASTE";
 
 export interface RouteNode {
   planet: number;
