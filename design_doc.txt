@@ -13,3 +13,16 @@ Planets (including moons, other bodies)
 - currentWaste
 - Growth rate (defined globally, for now)
 - Waste per population rate (global)
+
+Camera
+- WASD movement to pan around map
+- Zooming capability with scroll wheel
+- Max zoom in
+- Max zoom out
+- Default zoom setting
+
+
+HUD
+- Displays stats for currently selected object (planet, ship)
+
+Input
