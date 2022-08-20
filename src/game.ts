@@ -71,7 +71,9 @@ export default class Game extends Phaser.Scene {
   create() {
     //  add to top-level game object
     const { x, y } = this.screenCenter;
-    this.add.tileSprite(0, 0, 15_000, 10_000, "background");
+    try {
+      this.add.tileSprite(0, 0, 15_000, 10_000, "background");
+    } catch {}
 
     const homeworldId = this.createPlanet({
       texture: "homeworld",
@@ -279,7 +281,7 @@ export default class Game extends Phaser.Scene {
 
 const config: GameConfig = {
   type: Phaser.AUTO,
-  backgroundColor: "#125555",
+  backgroundColor: "#1a1a1a",
   width: window.innerWidth,
   height: window.innerHeight,
   scale: {
