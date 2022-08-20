@@ -1,4 +1,11 @@
-import { MONEY_PER_WASTE, PLANET_VALUE_PER_EMPTY, PLANET_VALUE_PER_POPULATION, PLANET_VALUE_PER_WASTE, POPULATION_GROWTH_RATE, WASTE_PER_POP } from "./constants";
+import {
+  MONEY_PER_WASTE,
+  PLANET_VALUE_PER_EMPTY,
+  PLANET_VALUE_PER_POPULATION,
+  PLANET_VALUE_PER_WASTE,
+  POPULATION_GROWTH_RATE,
+  WASTE_PER_POP,
+} from "./constants";
 import { Action, Planet, Position, Ship, State } from "./types";
 
 export function updatePlanet(
@@ -7,7 +14,10 @@ export function updatePlanet(
   delta: number,
 ): void {
   // grow populated planets if room
-  if (planet.population > 0 && (planet.population + planet.waste) < planet.capacity) {
+  if (
+    planet.population > 0 &&
+    planet.population + planet.waste < planet.capacity
+  ) {
     planet.growingPop += POPULATION_GROWTH_RATE * delta;
     planet.population = Math.min(
       planet.capacity,
@@ -29,7 +39,7 @@ export function updatePlanet(
 }
 
 export function displacePopulationIfNeeded(planet: Planet): void {
-  if ((planet.population + planet.waste) > planet.capacity) {
+  if (planet.population + planet.waste > planet.capacity) {
     planet.population = planet.capacity - planet.waste;
   }
 }
@@ -78,10 +88,7 @@ export function updateShip(state: State, ship: Ship, delta: number): void {
     }
 
     // check if at destination
-    if (
-      calculateDistance(ship.position, planet.position) <
-      planet.radius
-    ) {
+    if (calculateDistance(ship.position, planet.position) < planet.radius) {
       ship.currentSpeed = 0;
       executeShipAction(state, ship, node.action, planet);
       ship.destinationNodeIndex =

@@ -1,3 +1,5 @@
+export type EntityType = "planet" | "ship";
+
 export interface State {
   planets: Record<string, Planet>;
   ships: Record<string, Ship>;

@@ -3,8 +3,9 @@ import "phaser";
 import planets from "./assets/images/kenney_planets/Planets/*.png";
 import ships from "./assets/images/kenney_spaceshooterextension/PNG/Sprites/Ships/*.png";
 import backgrounds from "./assets/images/spaceshooter/Backgrounds/*.png";
+import shipTypes from "./data/shipTypes";
 import { convertRadiansToDegrees, updatePlanet, updateShip } from "./lib";
-import { Position, State } from "./types";
+import { EntityType, Position, ShipType, State } from "./types";
 import SmoothedKeyControl = Phaser.Cameras.Controls.SmoothedKeyControl;
 import KeyCodes = Phaser.Input.Keyboard.KeyCodes;
 import SmoothedKeyControlConfig = Phaser.Types.Cameras.Controls.SmoothedKeyControlConfig;
@@ -24,13 +25,8 @@ export default class Game extends Phaser.Scene {
   private cameraMinZoom: number;
   private cameraMaxZoom: number;
 
-  // @ts-ignore
-  private homeWorld: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
-  private planetScaleFactor: number;
-
-  // @ts-ignore
-  private ship: SpriteWithDynamicBody;
   private shipScaleFactor: number;
+  private selected: [EntityType, string] | null;
 
   // @ts-ignore
   private controls: SmoothedKeyControl;
@@ -48,7 +44,6 @@ export default class Game extends Phaser.Scene {
       routes: {},
     };
     this.sprites = {};
-    this.planetScaleFactor = 0.1;
     this.shipScaleFactor = 0.5;
 
     this.cameraMaxSpeed = 0.8;
@@ -57,6 +52,7 @@ export default class Game extends Phaser.Scene {
     this.cameraZoomSpeed = 0.02;
     this.cameraMinZoom = 1;
     this.cameraMaxZoom = 8;
+    this.selected = null;
   }
 
   init() {}
@@ -67,6 +63,11 @@ export default class Game extends Phaser.Scene {
     this.load.image("moon", planets.planet05);
     this.load.image("background", backgrounds.purple);
     this.load.image("ship", ships.spaceShips_005);
+    this.load.plugin(
+      "rexglowfilter2pipelineplugin",
+      "https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexglowfilter2pipelineplugin.min.js",
+      true,
+    );
   }
 
   create() {
@@ -88,6 +89,11 @@ export default class Game extends Phaser.Scene {
       position: { x: 2200, y: 1500 },
     });
 
+    const shipId = this.createShip({
+      type: shipTypes.shuttle,
+      position: this.state.planets[homeworldId].position,
+    });
+
     this.state.routes.route1 = {
       id: "route1",
       nodes: [
@@ -95,33 +101,7 @@ export default class Game extends Phaser.Scene {
         { planet: moonId, action: "DUMP_WASTE" },
       ],
     };
-
-    this.state.ships.shuttle1 = {
-      id: "shuttle1",
-      type: {
-        name: "Shuttle",
-        capacity: 10,
-        maxSpeed: 10,
-        acceleration: 2,
-        upkeepCost: 2,
-        buildCost: 10,
-      },
-      position: {
-        x: this.state.planets[homeworldId].position.x,
-        y: this.state.planets[homeworldId].position.y,
-      },
-      direction: 0,
-      currentSpeed: 0,
-      waste: 0,
-      assignedRoute: "route1",
-      destinationNodeIndex: 0,
-    };
-    this.sprites.shuttle1 = this.physics.add.sprite(
-      this.state.ships.shuttle1.position.x,
-      this.state.ships.shuttle1.position.y,
-      "ship",
-    );
-    this.sprites.shuttle1.setScale(this.shipScaleFactor);
+    this.state.ships[shipId].assignedRoute = "route1";
 
     this.state.money = 100;
 
@@ -168,6 +148,20 @@ export default class Game extends Phaser.Scene {
     };
 
     this.controls = new SmoothedKeyControl(controlConfig);
+
+    this.input.on(
+      "gameobjectup",
+      (
+        pointer: never,
+        object: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody,
+      ) => {
+        const [type, id] = object.getData(["type", "id"]) as [
+          EntityType,
+          string,
+        ];
+        this.toggleSelected(type, id);
+      },
+    );
   }
 
   update(time: number, delta: number): void {
@@ -182,6 +176,38 @@ export default class Game extends Phaser.Scene {
       sprite.setPosition(ship.position.x, ship.position.y);
     });
     this.controls.update(delta);
+  }
+
+  deselect() {
+    if (!this.selected) return;
+    const [type, id] = this.selected;
+    const sprite = this.sprites[id];
+    (this.plugins.get("rexglowfilter2pipelineplugin") as any).remove(sprite);
+    this.selected = null;
+  }
+
+  select(type: EntityType, id: string) {
+    if (this.selected) {
+      this.deselect();
+    }
+    const sprite = this.sprites[id];
+    (this.plugins.get("rexglowfilter2pipelineplugin") as any).add(sprite, {
+      outerStrength: 10,
+      innerStrength: 0,
+      glowColor: 0xffffff,
+      knockout: false,
+      distance: 15,
+      quality: 0.1,
+    });
+    this.selected = [type, id];
+  }
+
+  toggleSelected(type: EntityType, id: string) {
+    if (this.selected && this.selected[0] === type && this.selected[1] === id) {
+      this.deselect();
+    } else {
+      this.select(type, id);
+    }
   }
 
   createPlanet({
@@ -200,8 +226,19 @@ export default class Game extends Phaser.Scene {
     const id = nanoid();
     const capacity = radius * 100;
     const scale = (radius * 2) / 1000;
-    this.sprites[id] = this.physics.add.sprite(position.x, position.y, texture);
-    this.sprites[id].setScale(scale);
+    const sprite = this.physics.add.sprite(position.x, position.y, texture);
+    this.sprites[id] = sprite;
+    sprite.setScale(scale);
+    sprite.setInteractive(
+      new Phaser.Geom.Circle(
+        sprite.width / 2,
+        sprite.height / 2,
+        sprite.width / 2,
+      ),
+      Phaser.Geom.Circle.Contains,
+    );
+    sprite.setDataEnabled();
+    sprite.setData({ type: "planet", id });
     this.state.planets[id] = {
       id,
       position,
@@ -216,6 +253,30 @@ export default class Game extends Phaser.Scene {
   }
 
   private configureControls() {}
+
+  createShip({ type, position }: { type: ShipType; position: Position }) {
+    const id = nanoid();
+    this.state.ships[id] = {
+      id,
+      type,
+      position,
+      direction: 0,
+      currentSpeed: 0,
+      waste: 0,
+      assignedRoute: null,
+      destinationNodeIndex: 0,
+    };
+    const sprite = this.physics.add.sprite(position.x, position.y, "ship");
+    sprite.setScale(this.shipScaleFactor);
+    sprite.setInteractive(
+      new Phaser.Geom.Circle(sprite.width / 2, sprite.height / 2, sprite.width),
+      Phaser.Geom.Circle.Contains,
+    );
+    sprite.setDataEnabled();
+    sprite.setData({ type: "ship", id });
+    this.sprites[id] = sprite;
+    return id;
+  }
 }
 
 const config: GameConfig = {
