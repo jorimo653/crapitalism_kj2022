@@ -27,6 +27,7 @@ export default class Game extends Phaser.Scene {
 
   private shipScaleFactor: number;
   private selected: [EntityType, string] | null;
+  private paused: boolean;
 
   // @ts-ignore
   private controls: SmoothedKeyControl;
@@ -51,6 +52,7 @@ export default class Game extends Phaser.Scene {
     this.cameraMinZoom = 1;
     this.cameraMaxZoom = 8;
     this.selected = null;
+    this.paused = false;
   }
 
   init() {}
@@ -162,20 +164,29 @@ export default class Game extends Phaser.Scene {
         this.toggleSelected(type, id);
       },
     );
+
+    window.addEventListener("keydown", (event) => {
+      if (event.code === "Space") {
+        this.paused = !this.paused;
+      }
+    });
   }
 
   update(time: number, delta: number): void {
-    const deltaSeconds = delta / 1000;
-    Object.values(this.state.planets).forEach((planet) =>
-      updatePlanet(this.state, planet, deltaSeconds),
-    );
-    Object.values(this.state.ships).forEach((ship) => {
-      updateShip(this.state, ship, deltaSeconds);
-      const sprite = this.sprites[ship.id];
-      sprite.setAngle(convertRadiansToDegrees(ship.direction) + 90);
-      sprite.setPosition(ship.position.x, ship.position.y);
-    });
     this.controls.update(delta);
+
+    if (!this.paused) {
+      const deltaSeconds = delta / 1000;
+      Object.values(this.state.planets).forEach((planet) =>
+        updatePlanet(this.state, planet, deltaSeconds),
+      );
+      Object.values(this.state.ships).forEach((ship) => {
+        updateShip(this.state, ship, deltaSeconds);
+        const sprite = this.sprites[ship.id];
+        sprite.setAngle(convertRadiansToDegrees(ship.direction) + 90);
+        sprite.setPosition(ship.position.x, ship.position.y);
+      });
+    }
   }
 
   deselect() {
@@ -285,7 +296,9 @@ const config: GameConfig = {
   width: window.innerWidth,
   height: window.innerHeight,
   scale: {
-    mode: Phaser.Scale.FIT,
+    mode: Phaser.Scale.RESIZE,
+    width: "100%",
+    height: "100%",
   },
   scene: Game,
   physics: {
