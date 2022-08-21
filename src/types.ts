@@ -14,6 +14,7 @@ export interface Position {
 
 export interface Planet {
   id: string;
+  name: string;
   position: Position;
   capacity: number;
   radius: number;
@@ -29,6 +30,7 @@ export interface Planet {
 
 export interface Ship {
   id: string;
+  name: string;
   type: ShipType;
   position: Position;
 
