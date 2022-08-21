@@ -21,6 +21,10 @@ export interface Planet {
   waste: number;
   growingPop: number;
   growingWaste: number;
+  orbitCenter: Position;
+  orbitRadius: number;
+  orbitAngle: number;
+  orbitSpeed: number; // radius per second
 }
 
 export interface Ship {

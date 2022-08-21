@@ -36,6 +36,12 @@ export function updatePlanet(
   }
   // waste pushes out population if needed
   displacePopulationIfNeeded(planet);
+  // move planet
+  planet.orbitAngle += planet.orbitSpeed * delta;
+  planet.position.x =
+    planet.orbitCenter.x + Math.cos(planet.orbitAngle) * planet.orbitRadius;
+  planet.position.y =
+    planet.orbitCenter.y + Math.sin(planet.orbitAngle) * planet.orbitRadius;
 }
 
 export function displacePopulationIfNeeded(planet: Planet): void {
